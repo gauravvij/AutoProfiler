@@ -117,85 +117,39 @@ python run_experiment.py configs/your_config.json
 
 ---
 
-## Phase 4: Iterative Experimentation Strategy
+## Phase 4: The Continuous Exploration Loop (MANDATORY WORKFLOW)
 
-### The Exploration Loop
+Do NOT plan a sequence of experiments. Instead, follow this **Loop-of-One** protocol:
 
-1. **Analyze** the ledger for patterns
-2. **Hypothesize** what configuration might improve TPS/quality trade-off
-3. **Create** a config JSON
-4. **Execute** the experiment
-5. **Log** results (automatic)
-6. **Repeat**
+1. **Analyze**: Read the `ledger.tsv`. What is the current Pareto frontier? Where are the gaps?
+2. **Hypothesize**: Formulate a specific question. 
+   - *Standard*: "Can I hit 20 TPS with Q4 quantization?"
+   - *Strange*: "Will a 2-bit draft model with a 512 context window enable 'instant' 50+ TPS for short logic tasks?"
+3. **Propose**: Create ONE `configs/next_experiment.json`.
+4. **Execute**: Run `python run_experiment.py`.
+5. **Evaluate**: Immediately review the TPS **and** Quality Score.
+6. **Learn**: Update your mental model. Was the hypothesis correct?
+7. **Repeat**: Go back to Step 1.
 
-### Exploration Strategies (USE THESE!)
+### Integrated Exploration Strategy
 
-#### Strategy A: Quantization Sweep
-Start with the same model, vary quantization:
-- 8-bit baseline → 4-bit → 6-bit (if available)
-- Compare TPS gain vs. perplexity increase
+You should mix "Standard" and "Strange" angles in your search. Do not wait for a "Phase 2" to be creative.
 
-#### Strategy B: GPU Layer Offloading
-For GPU systems, find the sweet spot:
-- Start with n_gpu_layers=0 (CPU only)
-- Increase until all layers on GPU or OOM
-- Note: Partial offloading can be optimal!
-
-#### Strategy C: Context Length Scaling
-Test how context affects performance:
-- 2048 → 4096 → 8192
-- Watch for memory cliff
-
-#### Strategy D: Model Comparison
-Same configuration, different models:
-- Compare phi-3-mini vs. qwen2-7b at 4-bit
-- Which gives better TPS/quality for your hardware?
-
-### UNCONVENTIONAL STRATEGIES (EXPLICITLY ENCOURAGED!)
-
-The framework supports exploration beyond standard approaches. Try these:
-
-#### Asymmetric Quantization
-- Different quantization for different layer types
-- Embeddings at 8-bit, attention at 4-bit, FFN at 6-bit
-- Document which layers are most sensitive
-
-#### Hybrid Offloading
-- Put embeddings + first N layers on GPU, rest on CPU
-- Test if "front-heavy" offloading works better than uniform
-- Try "sandwich" patterns: GPU-CPU-GPU
-
-#### Strange Draft Models (Speculative Decoding)
-- Use a completely different architecture as draft (e.g., GPT-2 for Llama)
-- Test tiny models (125M) as drafters for larger models
-- Experiment with acceptance thresholds
-
-#### KV Cache Compression
-- Test INT8 vs FP16 KV cache
-- Try 4-bit KV cache if supported
-- Measure impact on long-context performance
-
-#### Batch Size Experiments
-- Even with single-user inference, batching can help
-- Test batch sizes 1, 2, 4, 8
-- Note: Only effective for GPU inference
+| Strategy Type | Approach | When to use |
+|---------------|----------|-------------|
+| **Standard** | Quantization sweeps (Q8 -> Q4), GPU offloading | To establish a baseline and find safe speedups. |
+| **Strange** | Asymmetric quants, 4-bit KV cache, extreme context truncation, non-obvious draft models | When standard gains plateau or when aiming for "instant" (50+ TPS) performance. |
+| **Aggressive** | Combining multiple strange angles (e.g., Q2 draft + 4-bit KV + 256 context) | To find the absolute physical limit of the hardware. |
 
 ---
 
-## Quality Thresholds
+## Quality Guardrails (Per-Experiment)
 
-**DO NOT sacrifice quality for speed blindly.** Use these guidelines:
+Every experiment is a speed-quality trade-off. Evaluate the result **immediately**:
 
-| Metric | Acceptable | Good | Excellent |
-|--------|------------|------|-----------|
-| Perplexity | < 2x baseline | < 1.5x baseline | < 1.2x baseline |
-| Quality Score | > 60% | > 75% | > 90% |
-
-**If quality drops below acceptable:**
-- Increase quantization bits
-- Reduce context length
-- Try a different model
-- Document the failure in notes
+- **If Quality > 80%**: You have "headroom." Try a more aggressive/strange optimization next.
+- **If Quality 50-80%**: You are on the "Edge." This is the most valuable data. Try to stabilize quality while maintaining speed.
+- **If Quality < 50%**: The model has collapsed. Your next experiment must be more conservative (higher bits, larger context, or better template).
 
 ---
 
