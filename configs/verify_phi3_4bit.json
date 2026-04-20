@@ -1,8 +1,0 @@
-{
-  "model_id": "phi-3-mini",
-  "quant_bits": 4,
-  "n_gpu_layers": 0,
-  "n_ctx": 4096,
-  "benchmark_runs": 3,
-  "max_tokens": 100
-}
