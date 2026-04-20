@@ -53,7 +53,7 @@ timestamp | config_hash | model_id | quant_bits | n_gpu_layers | n_ctx | tps | l
 
 ---
 
-## Phase 2: Experiment Configuration
+## Phase 2: Experiment Configuration (for example if model is phi 3 mini)
 
 Create JSON files in `configs/` directory. Each experiment needs:
 

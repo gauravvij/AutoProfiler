@@ -19,7 +19,7 @@ Follow these steps:
 
 ## 🛠 Example Experiment Configurations
 
-### Example 1: Standard Quantization Check (Gemma-2-2b)
+### Example 1: Standard Quantization Check
 ```json
 {
   "experiment_name": "gemma2_q4_baseline",
@@ -58,6 +58,8 @@ Follow these steps:
   "n_ctx": 2048
 }
 ```
+
+Experiments are not suppoed to stop until user pauses or cancels the runs.
 
 ## ⚠️ Critical Reminders
 - **Template Integrity**: Always verify the `chat_template`. A 0% quality score usually means a template error, not a bad model.
