@@ -1,0 +1,62 @@
+[
+  {
+    "name": "simple_math_1",
+    "prompt": "What is 15 + 27? Answer with just the number.",
+    "expected_keywords": ["42"],
+    "category": "math"
+  },
+  {
+    "name": "simple_math_2",
+    "prompt": "Calculate 8 multiplied by 7. Respond with only the result.",
+    "expected_keywords": ["56"],
+    "category": "math"
+  },
+  {
+    "name": "logic_deduction",
+    "prompt": "If all cats are mammals and some mammals are pets, are all cats pets? Answer yes or no.",
+    "expected_keywords": ["no", "not", "No"],
+    "category": "logic"
+  },
+  {
+    "name": "logic_sequence",
+    "prompt": "What comes next in the sequence: 2, 4, 8, 16? Answer with just the number.",
+    "expected_keywords": ["32"],
+    "category": "logic"
+  },
+  {
+    "name": "coding_function",
+    "prompt": "Write a Python function named 'factorial' that calculates factorial. Include 'def factorial' in your answer.",
+    "expected_keywords": ["def factorial", "def factorial("],
+    "category": "code"
+  },
+  {
+    "name": "coding_list",
+    "prompt": "Write Python code to create a list containing numbers 1 to 5. Include the list syntax.",
+    "expected_keywords": ["[1, 2, 3, 4, 5]", "list", "range"],
+    "category": "code"
+  },
+  {
+    "name": "instruction_following",
+    "prompt": "Respond with exactly this phrase and nothing else: 'The sky is blue.'",
+    "expected_keywords": ["The sky is blue"],
+    "category": "instruction"
+  },
+  {
+    "name": "common_knowledge",
+    "prompt": "What is the capital of France? Answer with just the city name.",
+    "expected_keywords": ["Paris"],
+    "category": "knowledge"
+  },
+  {
+    "name": "word_problem",
+    "prompt": "A train travels 60 miles in 2 hours. What is its speed in mph? Answer with just the number.",
+    "expected_keywords": ["30"],
+    "category": "math"
+  },
+  {
+    "name": "boolean_logic",
+    "prompt": "Is the following statement true or false: 'All squares are rectangles.' Answer with true or false.",
+    "expected_keywords": ["true", "True"],
+    "category": "logic"
+  }
+]

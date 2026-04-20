@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+venv
+.env
+
+# AutoProfiler Artifacts
+models/
+experiments/
+hardware_profile.json
+configs/*.json
+!configs/verify_phi3_4bit.json
+
+# Logs and Data
+ledger.tsv
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
