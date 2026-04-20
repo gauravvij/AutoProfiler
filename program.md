@@ -63,6 +63,7 @@ Create JSON files in `configs/` directory. Each experiment needs:
   "quant_bits": 4,
   "n_gpu_layers": 0,
   "n_ctx": 4096,
+  "chat_template": "phi3",
   "benchmark_runs": 5,
   "max_tokens": 100
 }
@@ -76,8 +77,24 @@ Create JSON files in `configs/` directory. Each experiment needs:
 | `quant_bits` | Quantization level | 4, 8 (higher = better quality, slower) |
 | `n_gpu_layers` | Layers on GPU | 0 (CPU), -1 (all GPU), or specific number |
 | `n_ctx` | Context window | 2048, 4096, 8192, 16384 |
+| `chat_template` | Format for prompts | "phi3", "llama3", "gemma", "chatml" |
 | `benchmark_runs` | Number of benchmark iterations | 3-10 |
 | `max_tokens` | Max tokens per generation | 50-200 |
+
+---
+
+## CRITICAL: Template Integrity & Engine Portability
+
+### 1. Chat Template Discipline
+Optimization benchmarks are invalid if the model is prompted incorrectly.
+- **Identify**: For every new model family, you MUST identify the correct chat template (Gemma, Llama-3, ChatML, etc.).
+- **Specify**: Explicitly define the `chat_template` in the experiment config.
+- **Verify**: If quality scores are unexpectedly low (e.g., <20%), you MUST inspect the raw prompt output in the logs to ensure special tokens are correctly placed. Do not mistake a template error for a quantization failure.
+
+### 2. Engine Portability & Metric Consistency
+- **Mutable Infrastructure**: You are encouraged to modify `run_experiment.py` to support new inference engines (vLLM, MLX, etc.) or optimization libraries.
+- **Metric Parity**: If you change the engine, you MUST ensure the `perplexity` and `quality_score` remain comparable. If the new engine calculates perplexity differently, you must note this in the `notes` column of the ledger.
+- **Re-Baselining**: After any major change to the execution engine, re-run a previously successful experiment to verify that the metrics (TPS, Perplexity) haven't shifted due to code changes rather than model changes.
 
 ---
 
@@ -217,6 +234,7 @@ Continue experimenting until ONE of these is true:
 3. **Document Reasoning**: Use the notes field to explain WHY you tried a configuration
 4. **Learn from Failures**: A failed experiment teaches you the boundary
 5. **Compare Pareto-Optimal**: Keep track of configs that dominate others
+6. **Never Substitute the User's Model**: If the model name specified by the user cannot be verified (e.g., no matching HuggingFace repo found), **stop and ask the user to confirm** the correct model identifier. Do not assume it is a typo and silently replace it with a different model.
 
 ---
 

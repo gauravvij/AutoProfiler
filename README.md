@@ -65,3 +65,4 @@ Experiments are not suppoed to stop until user pauses or cancels the runs.
 - **Template Integrity**: Always verify the `chat_template`. A 0% quality score usually means a template error, not a bad model.
 - **Hardware Bounds**: Do not exceed the VRAM reported in `hardware_profile.json`.
 - **Exploration**: Don't just do a grid search. Try "strange" combinations.
+- **Model Identity**: Never substitute or rename the model specified by the user. If the exact model ID cannot be verified (e.g., not found on HuggingFace), stop and ask the user to confirm the correct model name before proceeding. Do not assume a typo and silently replace it.
