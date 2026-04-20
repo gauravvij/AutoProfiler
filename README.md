@@ -5,7 +5,7 @@ This project is a structured experimentation framework for optimizing LLM infere
 ## 🚀 How to Start as an Agent
 
 If a user gives you an instruction like: 
-> "I want you to read README.md and follow the instructions in it to profile **Gemma 2 2b** model."
+> "I want you to read README.md and follow the instructions in it to profile this model: Model name"
 
 Follow these steps:
 
