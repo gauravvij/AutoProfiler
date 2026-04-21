@@ -27,6 +27,17 @@ This generates `hardware_profile.json` containing:
 - `constraints.max_context_length`: Don't exceed this
 - `constraints.offload_strategy`: Use "hybrid" or "disk" for low-resource systems
 
+## Phase 0.5: Template Validation (CRITICAL PREREQUISITE)
+
+**Before running any experiment, you MUST audit and validate the chat template.**
+
+A 0% or low quality score is often a sign of a broken template, not a bad model. For models with complex reasoning or specific stop tokens, you must ensure:
+1. **Stop Tokens**: Verify that all required stop tokens (e.g., `<|im_end|>`, `<|reasoning|>`, `<|/reasoning|>`) are included in the inference call.
+2. **Formatting**: Ensure the `format_prompt_for_chat_template` function correctly wraps the user input.
+3. **Reasoning Suppression**: For reasoning-capable models, ensure the template prevents the model from outputting internal reasoning before the final answer unless specifically requested.
+
+**Validation Step**: Run a single-task test and inspect the raw output logs to verify that special tokens are correctly handled and the model isn't "leaking" template artifacts.
+
 ---
 
 ## Phase 1: Understanding the Ledger

@@ -52,6 +52,10 @@ def download_model(model_id: str, quant_bits: int) -> str:
             4: "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf",
             8: "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q8_0.gguf",
         },
+        "unsloth/Qwen3.5-2B-GGUF": {
+            4: "https://huggingface.co/unsloth/Qwen3.5-2B-GGUF/resolve/main/Qwen3.5-2B-Q4_K_M.gguf",
+            8: "https://huggingface.co/unsloth/Qwen3.5-2B-GGUF/resolve/main/Qwen3.5-2B-Q8_0.gguf",
+        },
     }
     
     # Default to phi-3-mini if model not in mapping
@@ -100,6 +104,27 @@ def download_model(model_id: str, quant_bits: int) -> str:
             print(f"✓ Downloaded via curl to: {model_path}")
             return str(model_path)
         raise RuntimeError(f"Failed to download model: {e}")
+
+
+def format_prompt_for_chat_template(prompt: str, chat_template: str) -> str:
+    """
+    Format a prompt according to the specified chat template.
+    """
+    if chat_template == "chatml" or chat_template == "qwen":
+        # ChatML format used by Qwen
+        return f"<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
+    elif chat_template == "llama3":
+        # Llama-3 format
+        return f"<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
+    elif chat_template == "gemma":
+        # Gemma format
+        return f"<start_of_turn>user\n{prompt}<end_of_turn>\n<start_of_turn>model\n"
+    elif chat_template == "phi3":
+        # Phi-3 format
+        return f"<|user|>\n{prompt}<|end|>\n<|assistant|>\n"
+    else:
+        # Default: no formatting
+        return prompt
 
 
 def load_eval_suite() -> Tuple[List[str], List[Dict]]:
@@ -219,7 +244,7 @@ def compute_perplexity(llm: Llama, texts: List[str]) -> float:
     return float(perplexity)
 
 
-def evaluate_tasks(llm: Llama, tasks: List[Dict]) -> Dict:
+def evaluate_tasks(llm: Llama, tasks: List[Dict], chat_template: str = "") -> Dict:
     """
     Evaluate model on deterministic tasks.
     Returns quality metrics.
@@ -232,15 +257,23 @@ def evaluate_tasks(llm: Llama, tasks: List[Dict]) -> Dict:
     
     for task in tasks:
         try:
+            # Format prompt with chat template
+            formatted_prompt = format_prompt_for_chat_template(task["prompt"], chat_template)
+            
             # Generate response
             output = llm(
-                task["prompt"],
+                formatted_prompt,
                 max_tokens=100,
                 temperature=0.1,  # Low temp for deterministic evaluation
-                stop=["\n\n", "User:", "Human:"],
+                stop=["\n\n", "User:", "Human:", "<|im_start|>", "<|im_end|>", "<|reasoning|>", "<|/reasoning|>"],
             )
             
-            response = output["choices"][0]["text"].strip().lower()
+            response = output["choices"][0]["text"].strip()
+            # Remove reasoning content if it leaked through
+            if "<|reasoning|>" in response:
+                response = response.split("<|/reasoning|>")[-1].strip()
+            
+            response = response.lower()
             
             # Check if expected keywords are present
             passed = False
@@ -280,15 +313,19 @@ def benchmark_inference(llm: Llama, config: Dict) -> Dict:
     """
     print("\n--- Running Inference Benchmark ---")
     
+    chat_template = config.get("chat_template", "")
+    
     # Warmup
     print("  Warming up...")
+    warmup_prompt = format_prompt_for_chat_template("Hello, how are you?", chat_template)
     for _ in range(2):
-        _ = llm("Hello, how are you?", max_tokens=20)
+        _ = llm(warmup_prompt, max_tokens=20)
     
     # Benchmark prompt
-    benchmark_prompt = """Explain the concept of machine learning in simple terms.
+    raw_benchmark_prompt = """Explain the concept of machine learning in simple terms.
     Machine learning is a subset of artificial intelligence that enables computers to learn
     and improve from experience without being explicitly programmed."""
+    benchmark_prompt = format_prompt_for_chat_template(raw_benchmark_prompt, chat_template)
     
     # Collect latency measurements
     latencies = []
@@ -457,7 +494,8 @@ def run_experiment(config_path: str):
         
         # Evaluate tasks
         print("  Evaluating task performance...")
-        task_results = evaluate_tasks(llm, task_prompts)
+        chat_template = config.get("chat_template", "")
+        task_results = evaluate_tasks(llm, task_prompts, chat_template)
         results["quality_score"] = task_results["quality_score"]
         results["task_details"] = task_results
         print(f"  Quality Score: {results['quality_score']:.1f}%")
