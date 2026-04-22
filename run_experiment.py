@@ -56,6 +56,10 @@ def download_model(model_id: str, quant_bits: int) -> str:
             4: "https://huggingface.co/unsloth/Qwen3.5-2B-GGUF/resolve/main/Qwen3.5-2B-Q4_K_M.gguf",
             8: "https://huggingface.co/unsloth/Qwen3.5-2B-GGUF/resolve/main/Qwen3.5-2B-Q8_0.gguf",
         },
+        "unsloth/gemma-4-E4B-it-GGUF": {
+            4: "https://huggingface.co/unsloth/gemma-4-E4B-it-GGUF/resolve/main/gemma-4-E4B-it-Q4_K_M.gguf",
+            8: "https://huggingface.co/unsloth/gemma-4-E4B-it-GGUF/resolve/main/gemma-4-E4B-it-Q8_0.gguf",
+        },
     }
     
     # Default to phi-3-mini if model not in mapping
@@ -465,12 +469,33 @@ def run_experiment(config_path: str):
         print(f"  n_gpu_layers: {config.get('n_gpu_layers', 0)}")
         print(f"  n_ctx: {config.get('n_ctx', 4096)}")
         
-        llm = Llama(
-            model_path=model_path,
-            n_gpu_layers=config.get("n_gpu_layers", 0),
-            n_ctx=config.get("n_ctx", 4096),
-            verbose=False,
-        )
+        # Build Llama initialization parameters
+        llama_kwargs = {
+            "model_path": model_path,
+            "n_gpu_layers": config.get("n_gpu_layers", 0),
+            "n_ctx": config.get("n_ctx", 4096),
+            "verbose": False,
+        }
+        
+        # Add KV cache type if specified
+        if "cache_type_k" in config:
+            llama_kwargs["cache_type_k"] = config["cache_type_k"]
+            print(f"  cache_type_k: {config['cache_type_k']}")
+        if "cache_type_v" in config:
+            llama_kwargs["cache_type_v"] = config["cache_type_v"]
+            print(f"  cache_type_v: {config['cache_type_v']}")
+        
+        # Add thread count if specified
+        if "n_threads" in config:
+            llama_kwargs["n_threads"] = config["n_threads"]
+            print(f"  n_threads: {config['n_threads']}")
+        
+        # Add batch size if specified
+        if "n_batch" in config:
+            llama_kwargs["n_batch"] = config["n_batch"]
+            print(f"  n_batch: {config['n_batch']}")
+        
+        llm = Llama(**llama_kwargs)
         print("  ✓ Model loaded successfully")
         
         # Get memory usage

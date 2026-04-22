@@ -152,6 +152,9 @@ You should mix "Standard" and "Strange" angles in your search. Do not wait for a
 | **Strange** | Asymmetric quants, 4-bit KV cache, extreme context truncation, non-obvious draft models | When standard gains plateau or when aiming for "instant" (50+ TPS) performance. |
 | **Aggressive** | Combining multiple strange angles (e.g., Q2 draft + 4-bit KV + 256 context) | To find the absolute physical limit of the hardware. |
 
+### 2. Quantization Diversity Requirement
+If the user specifies a model, you MUST attempt to profile multiple quantization variants (e.g., Q4, Q8, Q2) if they are available in the repository and fit within hardware memory constraints. Do not settle for a single quantization level if others are accessible, as this is critical for mapping the Pareto frontier.
+
 ---
 
 ## Quality Guardrails (Per-Experiment)
